@@ -10,3 +10,5 @@ You can find the API documentation for the different modules here:
 - [Plane](models/plane.md)
 - [Box](models/box.md)
 - [RayTracer](core/raytracer.md)
+- [Scene](core/scene.md)
+- [Helpers](core/helpers.md)

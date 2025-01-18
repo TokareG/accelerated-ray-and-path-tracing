@@ -19,3 +19,5 @@ nav:
       - Box: models/box.md
   - Core:
       - Raytracer: core/raytracer.md
+      - Scene: core/scene.md
+      - Helpers: core/helpers.md
