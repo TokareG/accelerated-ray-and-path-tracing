@@ -1,4 +1,4 @@
-import numpy as np
+
 class Box:
     def __init__(self,
                  min_corner: tuple,
@@ -62,7 +62,7 @@ class Box:
             return t_max
         return None
 
-    def get_normal(self, point):
+    def get_normal(self, point: tuple) -> tuple:
         """
         Determines the normal vector at a given point on the box's surface.
 
@@ -81,17 +81,19 @@ class Box:
         z_max_dist = abs(point[2] - self.max_corner[2])
 
         dists = [
-            (x_min_dist, np.array([-1, 0, 0], dtype=float)),
-            (x_max_dist, np.array([1, 0, 0], dtype=float)),
-            (y_min_dist, np.array([0, -1, 0], dtype=float)),
-            (y_max_dist, np.array([0, 1, 0], dtype=float)),
-            (z_min_dist, np.array([0, 0, -1], dtype=float)),
-            (z_max_dist, np.array([0, 0, 1], dtype=float)),
+            (x_min_dist, (-1, 0, 0)),
+            (x_max_dist, (1, 0, 0)),
+            (y_min_dist, (0, -1, 0)),
+            (y_max_dist, (0, 1, 0)),
+            (z_min_dist, (0, 0, -1)),
+            (z_max_dist, (0, 0, 1)),
         ]
 
+        # Sort distances to find the closest face
         dists.sort(key=lambda x: x[0])
 
         for dist, normal_vec in dists:
             if dist < eps:
-                return tuple(normal_vec)
-        return (0, 0, 1)
+                return normal_vec  # Return the normal of the closest face
+
+        return (0, 0, 1)  # Default normal (shouldn't reach here)

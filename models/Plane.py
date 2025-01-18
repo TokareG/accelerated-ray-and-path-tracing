@@ -1,4 +1,4 @@
-import numpy as np
+from core.helpers import *
 class Plane:
     """Class representing plane scene objects."""
 
@@ -20,32 +20,15 @@ class Plane:
             transparency (float): The transparency coefficient (0..1).
             ior (float): The index of refraction.
         """
-        self.point = np.array(point, dtype=float)
-        self.normal = self._normalize(np.array(normal, dtype=float))
+        self.point = point
+        self.normal = helpers.normalize(normal)
         self.color = color
         self.reflection = reflection
         self.transparency = transparency
         self.ior = ior
 
-    def _normalize(self, vector: np.ndarray) -> np.ndarray:
-        """
-        Normalize a vector.
 
-        Args:
-            vector (np.ndarray): The vector to normalize.
-
-        Returns:
-            np.ndarray: The normalized vector.
-
-        Raises:
-            ValueError: If the vector has zero length.
-        """
-        norm = np.linalg.norm(vector)
-        if norm == 0:
-            raise ValueError("Cannot normalize a zero-length vector.")
-        return vector / norm
-
-    def intersect(self, ray_origin: tuple, ray_dir: tuple) -> float | None:
+    def intersect(self, ray_origin: tuple, ray_dir: tuple) -> tuple | None:
         """
         Calculate intersection of a ray with the plane.
 
@@ -54,19 +37,19 @@ class Plane:
             ray_dir (tuple): The normalized direction vector of the ray.
 
         Returns:
-            float or None: The distance `t` to the intersection point if an intersection occurs, or None if there is no intersection.
+            tuple or None: The distance `t` to the intersection point if an intersection occurs,
+                           along with u and v coordinates (unused for planes), or None if no intersection.
         """
-        ray_origin = np.array(ray_origin, dtype=float)
-        ray_dir = np.array(ray_dir, dtype=float)
-        denom = np.dot(self.normal, ray_dir)
-        if np.abs(denom) < 1e-9:
+        denom = helpers.dot(self.normal, ray_dir)
+        if abs(denom) < 1e-9:
             return None  # No intersection, the ray is parallel to the plane
-        t = np.dot(self.point - ray_origin, self.normal) / denom
-        if t > 0:
-            return t
+        t_numerator = helpers.dot(helpers.subtract(self.point, ray_origin), self.normal)
+        t = t_numerator / denom
+        if t > 1e-6:
+            return (t, 0, 0)  # t, u, v (u, v niewykorzystywane dla płaszczyzny)
         return None  # The intersection is behind the ray origin
 
-    def get_normal(self, point: tuple) -> np.ndarray:
+    def get_normal(self, point: tuple) -> tuple:
         """
         Get the normal vector of the plane.
 
@@ -76,5 +59,4 @@ class Plane:
         Returns:
             tuple: The normal vector of the plane.
         """
-        # The normal is constant across the plane
         return self.normal

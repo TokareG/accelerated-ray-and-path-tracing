@@ -1,4 +1,4 @@
-import numpy as np
+
 from core.helpers import *
 class Sphere:
     """Class representing sphere scene objects."""
