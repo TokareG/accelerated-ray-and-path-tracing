@@ -66,7 +66,7 @@ class Plane:
             return t
         return None  # The intersection is behind the ray origin
 
-    def get_normal(self, point: tuple) -> tuple:
+    def get_normal(self, point: tuple) -> np.ndarray:
         """
         Get the normal vector of the plane.
 
@@ -77,4 +77,4 @@ class Plane:
             tuple: The normal vector of the plane.
         """
         # The normal is constant across the plane
-        return tuple(self.normal)
+        return self.normal

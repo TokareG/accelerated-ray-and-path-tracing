@@ -2,3 +2,4 @@ numpy
 mkdocs
 mkdocs-material
 mkdocstrings-python
+pygame

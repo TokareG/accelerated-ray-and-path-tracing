@@ -17,3 +17,5 @@ nav:
       - Sphere: models/sphere.md
       - Plane: models/plane.md
       - Box: models/box.md
+  - Core:
+      - Raytracer: core/raytracer.md

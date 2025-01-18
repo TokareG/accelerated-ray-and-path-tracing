@@ -9,3 +9,4 @@ You can find the API documentation for the different modules here:
 - [Sphere](models/sphere.md)
 - [Plane](models/plane.md)
 - [Box](models/box.md)
+- [RayTracer](core/raytracer.md)

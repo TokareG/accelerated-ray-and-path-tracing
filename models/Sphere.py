@@ -1,4 +1,5 @@
 import numpy as np
+from core.helpers import *
 class Sphere:
     """Class representing sphere scene objects."""
     
@@ -38,39 +39,22 @@ class Sphere:
         Returns:
             float or None: The distance `t` to the intersection point if an intersection occurs, or None if there is no intersection.
         """
-        OC = ray_origin - self.center
-        a = np.dot(ray_dir, ray_dir)
-        b = 2.0 * np.dot(OC, ray_dir)
-        c = np.dot(OC, OC) - self.radius**2
-
-        disc = b*b - 4*a*c
-        if disc < 0:
+        OC = helpers.subtract(ray_origin, self.center)
+        a = helpers.dot(ray_dir, ray_dir)
+        b = 2.0 * helpers.dot(OC, ray_dir)
+        c = helpers.dot(OC, OC) - self.radius * self.radius
+        discriminant = b * b - 4 * a * c
+        if discriminant < 0:
             return None
-
-        sqrt_disc = np.sqrt(disc)
-        t1 = (-b - sqrt_disc) / (2*a)
-        t2 = (-b + sqrt_disc) / (2*a)
-
-        if t1 > 0 and t2 > 0:
-            return min(t1, t2)
-        elif t1 > 0:
-            return t1
-        elif t2 > 0:
-            return t2
+        sqrt_disc = discriminant ** 0.5
+        t1 = (-b - sqrt_disc) / (2.0 * a)
+        t2 = (-b + sqrt_disc) / (2.0 * a)
+        if t1 > 1e-6:
+            return t1, 0, 0  # t, u, v (u, v niewykorzystywane dla sfer)
+        if t2 > 1e-6:
+            return t2, 0, 0
         return None
     
     def get_normal(self, point):
-        """
-        Calculate the normal vector at a given point on the surface of the object.
-
-        Args:
-            point (tuple): A 3D point (x, y, z) on the surface of the object.
-
-        Returns:
-            tuple: A 3D unit vector (x, y, z) representing the normal at the given point.
-
-        Raises:
-            ValueError: If the point is identical to the center, causing a division by zero.
-
-        """
-        return (point - self.center) / np.linarg.norm(point - self.center)
+        normal = helpers.subtract(point, self.center)
+        return helpers.normalize(normal)
