@@ -4,7 +4,7 @@ class Scene:
     """
     Class that stores objects, light parameters, background, and the trace_ray method.
     """
-    def __init__(self, light_pos, background_color, ambient=0.1, max_depth=3):
+    def __init__(self, light_pos, background_color, ambient, max_depth):
         self.objects = []
         self.light_pos = tuple(light_pos)
         self.background_color = tuple(background_color)
@@ -28,8 +28,8 @@ class Scene:
 
         closest_t = float('inf')
         closest_obj = None
-        bary_u = 0
-        bary_v = 0
+        #bary_u = 0
+        #bary_v = 0
 
         # 1) Znajdź najbliższe przecięcie
         for obj in self.objects:
@@ -43,8 +43,8 @@ class Scene:
             if 1e-6 < t < closest_t:
                 closest_t = t
                 closest_obj = obj
-                bary_u = u
-                bary_v = v
+                #bary_u = u
+                #bary_v = v
 
         # 2) Nic nie trafione -> tło
         if not closest_obj:
