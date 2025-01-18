@@ -1,3 +1,4 @@
+import numpy as np
 class Sphere:
     """Class representing sphere scene objects."""
     

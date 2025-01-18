@@ -15,3 +15,5 @@ nav:
   - Home: index.md
   - Models:
       - Sphere: models/sphere.md
+      - Plane: models/plane.md
+      - Box: models/box.md
