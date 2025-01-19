@@ -1,5 +1,6 @@
 from .raytracer import RayTracer
 from .scene import Scene
+from . ObjReader import ObjReader
 
 """
 Models package.

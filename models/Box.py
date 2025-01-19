@@ -1,8 +1,8 @@
 
 class Box:
     def __init__(self,
-                 min_corner: tuple,
-                max_corner: tuple,
+                 a_corner: tuple,
+                 b_corner: tuple,
                  color: tuple,
                  reflection: float,
                  transparency: float,
@@ -11,15 +11,15 @@ class Box:
         Initializes the Box object.
 
         Args:
-            min_corner (tuple): The minimum corner of the box (x_min, y_min, z_min).
-            max_corner (tuple): The maximum corner of the box (x_max, y_max, z_max).
+            a_corner (tuple): The minimum corner of the box (x_min, y_min, z_min).
+            b_corner (tuple): The maximum corner of the box (x_max, y_max, z_max).
             color (tuple): The RGB color of the box.
             reflection (float, optional): The reflection coefficient (0..1). Defaults to 0.0.
             transparency (float, optional): The transparency coefficient (0..1). Defaults to 0.0.
             ior (float, optional): The index of refraction. Defaults to 1.0.
         """
-        self.min_corner = min_corner
-        self.max_corner = max_corner
+        self.min_corner = (min(a_corner[0], b_corner[0]), min(a_corner[1], b_corner[1]), min(a_corner[2], b_corner[2]))
+        self.max_corner = (max(a_corner[0], b_corner[0]), max(a_corner[1], b_corner[1]), max(a_corner[2], b_corner[2]))
         self.color = color
         self.reflection = reflection
         self.transparency = transparency

@@ -32,6 +32,16 @@ class helpers:
             return v
         return tuple(a / n for a in v)
 
+    def cross(v1: tuple, v2: tuple) -> tuple:
+        """
+        Calculates the vector product of two vectors (tuples).
+        """
+        return (
+            v1[1] * v2[2] - v1[2] * v2[1],
+            v1[2] * v2[0] - v1[0] * v2[2],
+            v1[0] * v2[1] - v1[1] * v2[0]
+        )
+
     def reflect(ray_dir, normal):
         """
         Calculates the reflection vector (tuple).
