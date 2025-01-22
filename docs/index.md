@@ -6,9 +6,9 @@ This is the documentation for the ray tracing project.
 
 You can find the API documentation for the different modules here:
 
-- [Sphere](models/sphere.md)
-- [Plane](models/plane.md)
-- [Box](models/box.md)
-- [RayTracer](core/raytracer.md)
+- [Triangle](models/triangle.md)
+- [Mesh](models/mesh.md)
+- [Ray](core/ray.md)
 - [Scene](core/scene.md)
-- [Helpers](core/helpers.md)
+- [Utils](core/utils.md)
+- [Camera](core/camera.md)

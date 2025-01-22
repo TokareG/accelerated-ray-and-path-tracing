@@ -2,6 +2,9 @@ from typing import List
 from core.Utils import *
 
 class Ray:
+    """
+    Generates a ray originating from the camera and passing through the pixel at (i, j).
+    """
     def __init__(self, origin: List[float], direction: List[float]):
         self.origin = origin
         self.direction = direction

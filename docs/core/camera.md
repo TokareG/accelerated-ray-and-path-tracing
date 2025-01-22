@@ -1,6 +1,6 @@
-# Sphere Class
+# Camera Class
 
-::: models.Sphere
+::: core.Camera
     handler: python
     options:
       show_root_heading: false
