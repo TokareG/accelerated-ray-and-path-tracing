@@ -1,0 +1,17 @@
+{
+  "lights": {
+    "0": {
+      "type": "square",
+      "position": [0, 0, 0],
+      "intensity": 255,
+      "width": 20,
+      "height": 50
+    },
+    "1": {
+      "type": "circle",
+      "position": [1, 1, 1],
+      "intensity": 100,
+      "radius": 20
+    }
+  }
+}
