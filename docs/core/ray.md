@@ -1,6 +1,6 @@
-# Plane Class
+# Ray Class
 
-::: models.Plane
+::: core.Ray
     handler: python
     options:
       show_root_heading: false

@@ -5,10 +5,18 @@ from core.Utils import *
 import os
 
 class Scene:
+    """
+    Represents a 3D scene composed of multiple meshes loaded from a Wavefront OBJ file.
+    The Scene class handles loading mesh data, computing bounding boxes for optimization,
+    and performing ray intersections to determine visibility and color information.
+    """
     def __init__(self):
         pass
 
     def load_from_file(self, filepath):
+        """
+        Loads a 3D scene from a Wavefront OBJ file and constructs Mesh and Triangle objects.
+        """
         root_path = os.path.join(os.path.dirname(__file__) + "/..")
         scene = Wavefront(os.path.join(root_path, filepath), collect_faces=True)
         meshes = []
@@ -39,6 +47,10 @@ class Scene:
         self.mesh_list = meshes
 
     def hit(self, ray: Ray):
+        """
+        Determines if a given ray intersects with any objects in the scene and returns
+        information about the closest intersection.
+        """
         closest_intersection = None
         for mesh in self.mesh_list:
 

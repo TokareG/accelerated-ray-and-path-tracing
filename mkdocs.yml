@@ -14,10 +14,10 @@ plugins:
 nav:
   - Home: index.md
   - Models:
-      - Sphere: models/sphere.md
-      - Plane: models/plane.md
-      - Box: models/box.md
+      - Triangle: models/triangle.md
+      - Mesh: models/mesh.md
   - Core:
-      - Raytracer: core/raytracer.md
+      - Ray: core/ray.md
       - Scene: core/scene.md
-      - Helpers: core/helpers.md
+      - Utils: core/utils.md
+      - Camera: core/camera.md

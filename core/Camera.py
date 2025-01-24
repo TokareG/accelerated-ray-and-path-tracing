@@ -10,8 +10,18 @@ from tqdm import tqdm
 
 class Camera:
     """
-    The class responsible for configuring the camera and rendering properly
-    to the Pygame surface.
+    The Camera class is responsible for configuring the camera settings and rendering the scene
+    onto a Pygame surface. It handles the generation of rays for each pixel, performing ray tracing
+    to determine pixel colors based on scene intersections.
+
+    Args:
+        scene (Scene): The 3D scene to be rendered.
+        img_width (int, optional): Width of the output image in pixels. Defaults to 400.
+        img_height (int, optional): Height of the output image in pixels. Defaults to 300.
+        camera_origin (List[float], optional): The position of the camera in 3D space. Defaults to (0, 0, 2).
+        lookat (List[float], optional): The point in space the camera is looking at. Defaults to (0, 0, -1).
+        vup (List[float], optional): The "up" direction for the camera, defining the camera's orientation. Defaults to (0, 1, 0).
+        fov (int, optional): Field of view in degrees. Determines the extent of the observable world. Defaults to 60.
     """
     def __init__(self,
                  scene: Scene,
@@ -47,6 +57,9 @@ class Camera:
         self.pixel_00 = add(viewport_upper_left, scalmul(0.5, add(self.pixel_delta_u, self.pixel_delta_v)))
 
     def get_ray(self, i: int, j: int):
+        """
+        Generates a ray originating from the camera and passing through the pixel at (i, j).
+        """
 
         offset_x = random.gauss(0,1) - 1
         offset_y = random.gauss(0,1) - 1
@@ -56,6 +69,10 @@ class Camera:
 
 
     def render(self):
+        """
+        Renders the scene by casting rays through each pixel and determining their colors based on scene intersections.
+        The rendered image is displayed on the Pygame surface.
+        """
         start = time.process_time()
         total_pixels = self.img_height * self.img_width
         with tqdm(total=total_pixels, desc="Rendering", unit="pixel") as pbar:

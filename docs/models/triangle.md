@@ -1,6 +1,6 @@
-# RayTracing Class
+# Triangle Class
 
-::: core.raytracer
+::: models.Triangle
     handler: python
     options:
       show_root_heading: false

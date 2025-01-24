@@ -1,6 +1,6 @@
-# Helpers Class
+# Mesh Class
 
-::: core.helpers
+::: models.Mesh
     handler: python
     options:
       show_root_heading: false
