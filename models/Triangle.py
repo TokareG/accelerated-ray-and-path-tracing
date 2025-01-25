@@ -49,6 +49,6 @@ class Triangle:
 
         if t > EPSILON:
             intersection_point = ray.at(t)
-            return t, intersection_point
+            return t, intersection_point, self
         else:
             return None

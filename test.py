@@ -2,6 +2,9 @@ import json
 import os
 import sys
 import time
+
+from core.Utils import *
+
 """
 TODO:
 - Separate light classes
@@ -30,7 +33,7 @@ class LightSourceCircle(LightSource):
         super().__init__(position, intensity)
         self.radius = radius
 
-with open('config.json') as f:
+with open('scene_config.json') as f:
     config = json.load(f)
 
 lights = []
@@ -50,4 +53,15 @@ for idx, light in config['lights'].items():
 for light in lights:
     print(json.dumps(light.__dict__))
 
-print(f"Execution time: {time.process_time() - start}")
+def phong(scene, face, light):
+    Ns, ka, kd, ks, Ni, d, illum = (face.material.shininess,
+                                    face.material.ambient,
+                                    face.material.diffuse,
+                                    face.material.specular,
+                                    face.material.optical_density,
+                                    face.material.transparency,
+                                    face.material.illumination_model)
+    L = norm(sub(light.position, face.position))
+    R = norm(sub(scale(2 * dot(face.normal, L), face.normal), L))
+    V = norm(sub(scene.camera.position, face.position))
+    color = scale(scene.ambient_light, ka) + scale(light.intensity, matmul(light.color, add(scale(max(0, dot(L, face.normal)), kd), scale(max(0, dot(R, V)) ** Ns, ks))))

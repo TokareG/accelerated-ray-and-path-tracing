@@ -76,6 +76,7 @@ class Utils:
         Scales each component of the vector by the reciprocal of the given scalar value.
         """
         return [x / f for x in v]
+
     
     
 
@@ -85,5 +86,5 @@ norm = Utils.norm
 sub = Utils.sub
 add = Utils.add
 matmul = Utils.matmul
-scalmul = Utils.scalmul
+scale = Utils.scalmul
 div_by_scalar = Utils.div_by_scalar

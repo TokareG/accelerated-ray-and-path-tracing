@@ -1,4 +1,9 @@
+import json
+
 from pywavefront import Wavefront, material
+
+from Lights import Light
+from Lights.Light import PointLight
 from models import *
 from core import *
 from core.Utils import *
@@ -10,8 +15,12 @@ class Scene:
     The Scene class handles loading mesh data, computing bounding boxes for optimization,
     and performing ray intersections to determine visibility and color information.
     """
-    def __init__(self):
-        pass
+
+    def __init__(self) -> None:
+
+        self.ambient_light = None
+        self.mesh_list = None
+        self.lights = None
 
     def load_from_file(self, filepath):
         """
@@ -46,6 +55,20 @@ class Scene:
 
         self.mesh_list = meshes
 
+    def load_config(self, path):
+        LIGHT_TYPE_MAP = {
+            'point': PointLight,
+            'default': Light
+        }
+        with open(path, 'r') as f:
+            config = json.load(f)
+        self.lights = []
+        for idx, light in config['lights'].items():
+            light_type = light.pop('type', "default")
+            light_class = LIGHT_TYPE_MAP.get(light_type, LIGHT_TYPE_MAP['default'])
+            self.lights.append(light_class(**light))
+        self.ambient_light = config['ambient_light']
+
     def hit(self, ray: Ray):
         """
         Determines if a given ray intersects with any objects in the scene and returns
@@ -53,28 +76,30 @@ class Scene:
         """
         closest_intersection = None
         for mesh in self.mesh_list:
-
+            ray.t_max = float('+inf')
+            ray.t_min = 0.1
             for i in range(3):
                 if ray.direction[i] < 1e-8:
                     if ray.origin[i] < mesh.bounding_box_min[i] or ray.origin[i] > mesh.bounding_box_max[i]:
                         continue
-                else:
-                    t1 = (mesh.bounding_box_min[i] - ray.origin[i]) / ray.direction[i]
-                    t2 = (mesh.bounding_box_max[i] - ray.origin[i]) / ray.direction[i]
-                    if t1 > t2:
-                        t1, t2 = t2, t1
-                    if t1 > ray.t_min:
-                        ray.t_min = t1
-                    if t2 < ray.t_max:
-                        ray.t_max = t2
-                    if ray.t_min > ray.t_max:
-                        break
+                # else:
+                #     t1 = (mesh.bounding_box_min[i] - ray.origin[i]) / ray.direction[i]
+                #     t2 = (mesh.bounding_box_max[i] - ray.origin[i]) / ray.direction[i]
+                #     if t1 > t2:
+                #         t1, t2 = t2, t1
+                #     if t1 > ray.t_min:
+                #         ray.t_min = t1
+                #     if t2 < ray.t_max:
+                #         ray.t_max = t2
+                #     if ray.t_min > ray.t_max:
+                #         break
             intersections = []
             for face in mesh.faces:
                 result = face.hit(ray)
-                t, intersection_point = result if result else (False, [0,0,0])
-                if t and ray.t_min < t < ray.t_max:
-                    intersections.append([t, intersection_point, scalmul(255, face.material.diffuse[:3]) if face.material and face.material.diffuse else [255,255,255]])
+                t, intersection_point, face = result if result else (False, [0,0,0], None)
+                if t and ray.t_min <= t <= ray.t_max:
+                    #color = self.phong(face, self.lights[0], intersection_point)
+                    intersections.append([t, intersection_point, face])
             if intersections:
                 intersections.sort(key=lambda x: x[0])
                 closest__mesh_intersection = intersections[0]
@@ -83,26 +108,3 @@ class Scene:
                     closest_intersection = closest__mesh_intersection
         return closest_intersection
 
-
-
-
-
-
-
-# for m in obj.mesh_list:
-#     mesh = Mesh(m.name)
-#     min_point = [float('+inf'),float('+inf'),float('+inf')]
-#     max_point = [float('-inf'),float('-inf'),float('-inf')]
-#     for f in m.faces:
-#         vertices = [obj.vertices[i] for i in f]
-#         for vertex in vertices:
-#             min_point = [min(vertex[0], min_point[0]),
-#                          min(vertex[1], min_point[1]),
-#                          min(vertex[2], min_point[2])]
-#             max_point = [max(vertex[0], max_point[0]),
-#                          max(vertex[1], max_point[1]),
-#                          max(vertex[2], max_point[2])]
-#         face = Triangle(vertices[0], vertices[1], vertices[2])
-#         mesh.faces.append(face)     
-#         mesh.set_bounding_box(min_point, max_point)   
-#     #meshes.append(mesh)

@@ -7,16 +7,17 @@ import pygame
 
 
 pygame.init()
-width, height = 400, 300
+width, height = 640, 360
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Ray Tracer")
 clock = pygame.time.Clock()
 running = True
 
 scene = Scene()
-scene.load_from_file('data/scene_1.obj')
+scene.load_from_file('data/scene_2.obj')
+scene.load_config('./scene_config.json')
 
-camera = Camera(scene)
+camera = Camera(scene, width, height)
 camera.render()
 while running:
     for event in pygame.event.get():
