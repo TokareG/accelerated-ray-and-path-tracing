@@ -4,3 +4,4 @@ from .Scene import Scene
 from .Camera import Camera
 from .BVH import BvhNode
 from .KDTree import KdTreeNode
+from .UniformGrid import UniformGrid

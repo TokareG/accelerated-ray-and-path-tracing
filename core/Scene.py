@@ -8,9 +8,14 @@ from models import *
 from core import *
 from core.Utils import *
 import os
-from core.BVH import build_bvh, hit_bvh
 from core.KDTree import KdTreeNode
-
+from core.BVH import (
+    build_bvh,
+    hit_bvh,
+    build_bvh_meshes,
+    hit_bvh_meshes
+)
+from core.UniformGrid import build_grid, hit_grid
 class Scene:
     """
     Represents a 3D scene composed of multiple meshes loaded from a Wavefront OBJ file.
@@ -26,6 +31,7 @@ class Scene:
         self.acceleration_structure = acceleration_structure
         self.bvh_root = None
         self.kd_root = None
+        self.mesh_bvh_root=None
 
     def load_from_file(self, filepath):
         """
@@ -62,11 +68,14 @@ class Scene:
         self.mesh_list = meshes
         all_faces = sum([mesh.faces for mesh in self.mesh_list], [])
         scene_bbox = KdTreeNode.create_meshlist_bbox(all_faces)
-
-        self.bvh_root = build_bvh(all_faces, max_faces_in_leaf=4)
-        self.kd_root = KdTreeNode(obj_list=all_faces, depth=0, bbox=scene_bbox)
-
-
+        if self.acceleration_structure == "bvh":
+            self.bvh_root = build_bvh(all_faces, max_faces_in_leaf=4)
+        if self.acceleration_structure == "kd-tree":
+            self.kd_root = KdTreeNode(obj_list=all_faces, depth=0, bbox=scene_bbox)
+        if self.acceleration_structure == "mesh_bvh":
+            self.mesh_bvh_root = build_bvh_meshes(meshes, max_in_leaf=1)
+        if self.acceleration_structure == "grid":
+            self.grid = build_grid(all_faces, desired_resolution=20)
     def load_config(self, path):
         LIGHT_TYPE_MAP = {
             'point': PointLight,
@@ -88,9 +97,12 @@ class Scene:
         """
         if self.acceleration_structure == "bvh" and self.bvh_root:
            return hit_bvh(ray, self.bvh_root)
-
         elif self.acceleration_structure == "kd-tree" and self.kd_root:
             return self.kd_root.traverse_tree(ray)
+        elif self.acceleration_structure == "mesh_bvh" and self.mesh_bvh_root:
+            return hit_bvh_meshes(ray, self.mesh_bvh_root)
+        elif self.acceleration_structure == "grid" and self.grid:
+            return hit_grid(ray, self.grid)
 
         else:
             closest_intersection = None

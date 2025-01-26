@@ -150,3 +150,70 @@ def hit_bvh(ray: Ray, node: BvhNode):
     if hit_left and hit_right:
         return hit_left if hit_left[0] < hit_right[0] else hit_right
     return hit_left if hit_left else hit_right
+
+
+class MeshBvhNode:
+
+    def __init__(self, meshes):
+        self.meshes = meshes
+        self.left = None
+        self.right = None
+        self.is_leaf = False
+
+        min_pt = [float('inf'), float('inf'), float('inf')]
+        max_pt = [float('-inf'), float('-inf'), float('-inf')]
+        for mesh in meshes:
+            for i in range(3):
+                min_pt[i] = min(min_pt[i], mesh.bounding_box_min[i])
+                max_pt[i] = max(max_pt[i], mesh.bounding_box_max[i])
+        self.bounding_box_min = min_pt
+        self.bounding_box_max = max_pt
+
+def build_bvh_meshes(meshes, max_in_leaf=1) -> MeshBvhNode:
+    node = MeshBvhNode(meshes)
+    if len(meshes) <= max_in_leaf:
+        node.is_leaf = True
+        return node
+    bbox_size = sub(node.bounding_box_max, node.bounding_box_min)
+    axis = bbox_size.index(max(bbox_size))
+    def mesh_centroid(mesh):
+        cmin, cmax = mesh.bounding_box_min, mesh.bounding_box_max
+        return (cmin[axis] + cmax[axis]) * 0.5
+
+    meshes.sort(key=mesh_centroid)
+
+    mid = len(meshes) // 2
+    left_meshes  = meshes[:mid]
+    right_meshes = meshes[mid:]
+
+    node.left  = build_bvh_meshes(left_meshes,  max_in_leaf)
+    node.right = build_bvh_meshes(right_meshes, max_in_leaf)
+    return node
+
+def hit_bvh_meshes(ray: Ray, node: MeshBvhNode):
+
+    if not aabb_hit(ray, node.bounding_box_min, node.bounding_box_max):
+        return None
+
+    if node.is_leaf:
+
+        closest_hit = None
+        for mesh in node.meshes:
+            if not aabb_hit(ray, mesh.bounding_box_min, mesh.bounding_box_max):
+                continue
+
+            for face in mesh.faces:
+                res = face.hit(ray)
+                if res:
+                    t, intersection_point, face_obj = res
+                    if ray.t_min <= t <= ray.t_max:
+                        if (closest_hit is None) or (t < closest_hit[0]):
+                            closest_hit = (t, intersection_point, face_obj)
+        return closest_hit
+
+    hit_left  = hit_bvh_meshes(ray, node.left)  if node.left  else None
+    hit_right = hit_bvh_meshes(ray, node.right) if node.right else None
+
+    if hit_left and hit_right:
+        return hit_left if hit_left[0] < hit_right[0] else hit_right
+    return hit_left if hit_left else hit_right
