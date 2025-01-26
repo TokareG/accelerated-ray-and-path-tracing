@@ -27,9 +27,9 @@ class Camera:
                  scene: Scene,
                  img_width: int = 300,
                  img_height: int = 200,
-                 camera_origin: List[float] = (0,.75,0), #(0,0,8),
-                 lookat: List[float] = (0,.75,-1), #(0,.0,-1),
-                 vup: List[float] = (0,1,0),
+                 camera_origin: List[float] = (0,0,8) , #,Scene_3:(0,0,8) Scene_2:(0,.75,0)
+                 lookat: List[float] = (0,.0,-1), #Scene_3:(0,.0,-1),Scene_2:(0,.75,-1)
+                 vup: List[float] =(0,1,0),
                  fov: int = 60):
         self.scene = scene
         self.img_width = img_width
@@ -95,16 +95,26 @@ class Camera:
         if hit:
             t, intersection_point, face = hit
             if face.material.illumination_model == 2:
+                # Zaczynamy od światła otoczenia (ambient):
+                out_color = scale(self.scene.ambient_light, face.material.ambient)
+
                 for light in self.scene.lights:
-                    light_ray = Ray(add(intersection_point, scale(1e-3, face.unit_norm)), norm(sub(light.position, intersection_point)))
-                    t_to_light = sum(x**2 for x in sub(light.position, intersection_point))**(1/2)
+                    # Dla każdego światła sprawdzamy, czy jest zasłonięte
+                    light_ray = Ray(add(intersection_point, scale(1e-3, face.unit_norm)),
+                                    norm(sub(light.position, intersection_point)))
+                    t_to_light = sum(x ** 2 for x in sub(light.position, intersection_point)) ** (1 / 2)
                     light_hit = self.scene.hit(light_ray)
+
                     if light_hit:
-                        light_t, light_intersection_point, light_face = light_hit
+                        light_t, _, _ = light_hit
                         if light_t < t_to_light:
-                            return scale(self.scene.ambient_light, face.material.ambient)
-                    else:
-                        return self.phong(face, light, intersection_point)
+                            # Jeśli zasłonięte -> dajemy tylko ambient, więc w tym świetle nic nie dodajemy
+                            continue
+                            # ewentualnie można dodać bardzo delikatny "przesiany" kolor, zależnie od materiału
+                    # Jeśli nie zasłonięte:
+                    out_color = add(out_color, self.phong(face, light, intersection_point))
+
+                return out_color
             if face.material.illumination_model == 3:
                 direction = sub(ray.direction, scale(2 * dot(ray.direction, face.unit_norm), face.unit_norm))
                 reflected_ray = Ray(intersection_point, direction)
