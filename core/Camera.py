@@ -61,8 +61,8 @@ class Camera:
         Generates a ray originating from the camera and passing through the pixel at (i, j).
         """
 
-        offset_x = random.gauss(0,1) - 1
-        offset_y = random.gauss(0,1) - 1
+        offset_x = random.uniform(0,1) - 1
+        offset_y = random.uniform(0,1) - 1
         pixel_sample = add(self.pixel_00, add(scale(i + offset_x, self.pixel_delta_u), scale(j + offset_y, self.pixel_delta_v)))
         ray_direction = sub(pixel_sample, self.camera_origin)
         return Ray(self.camera_origin, ray_direction)
