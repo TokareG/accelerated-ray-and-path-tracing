@@ -10,7 +10,7 @@ from core.Utils import *
 from core.Ray import Ray
 from core.BVH import build_bvh, hit_bvh
 from core.KDTree import KdTreeNode
-from core.UniformGrid import build_grid, hit_grid  # <-- DODANE: import siatki jednorodnej
+from core.UniformGrid import build_grid, hit_grid  
 
 class Scene:
     """
@@ -26,7 +26,7 @@ class Scene:
         self.acceleration_structure = acceleration_structure
         self.bvh_root = None
         self.kd_root = None
-        self.grid = None   # <-- DODANE: miejsce na siatkę jednorodną
+        self.grid = None   
 
     def load_from_file(self, filepath):
        
