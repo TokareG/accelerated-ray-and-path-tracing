@@ -9,6 +9,7 @@ from core import *
 from core.Utils import *
 import os
 from core.BVH import build_bvh, hit_bvh
+from core.KDTree import KdTreeNode
 
 class Scene:
     """
@@ -24,6 +25,8 @@ class Scene:
         self.lights = None
         self.acceleration_structure = acceleration_structure
         self.bvh_root = None
+        self.kd_root = None
+
     def load_from_file(self, filepath):
         """
         Loads a 3D scene from a Wavefront OBJ file and constructs Mesh and Triangle objects.
@@ -57,10 +60,11 @@ class Scene:
             meshes.append(mesh)
 
         self.mesh_list = meshes
+        all_faces = sum([mesh.faces for mesh in self.mesh_list], [])
+        scene_bbox = KdTreeNode.create_meshlist_bbox(all_faces)
 
-        for mesh in self.mesh_list:
-            all_faces.extend(mesh.faces)
         self.bvh_root = build_bvh(all_faces, max_faces_in_leaf=4)
+        self.kd_root = KdTreeNode(obj_list=all_faces, depth=0, bbox=scene_bbox)
 
 
     def load_config(self, path):
@@ -85,37 +89,41 @@ class Scene:
         if self.acceleration_structure == "bvh" and self.bvh_root:
            return hit_bvh(ray, self.bvh_root)
 
-        closest_intersection = None
-        for mesh in self.mesh_list:
-            ray.t_max = float('+inf')
-            ray.t_min = 0.1
-            for i in range(3):
-                if ray.direction[i] < 1e-8:
-                    if ray.origin[i] < mesh.bounding_box_min[i] or ray.origin[i] > mesh.bounding_box_max[i]:
-                        continue
-                # else:
-                #     t1 = (mesh.bounding_box_min[i] - ray.origin[i]) / ray.direction[i]
-                #     t2 = (mesh.bounding_box_max[i] - ray.origin[i]) / ray.direction[i]
-                #     if t1 > t2:
-                #         t1, t2 = t2, t1
-                #     if t1 > ray.t_min:
-                #         ray.t_min = t1
-                #     if t2 < ray.t_max:
-                #         ray.t_max = t2
-                #     if ray.t_min > ray.t_max:
-                #         break
-            intersections = []
-            for face in mesh.faces:
-                result = face.hit(ray)
-                t, intersection_point, face = result if result else (False, [0,0,0], None)
-                if t and ray.t_min <= t <= ray.t_max:
-                    #color = self.phong(face, self.lights[0], intersection_point)
-                    intersections.append([t, intersection_point, face])
-            if intersections:
-                intersections.sort(key=lambda x: x[0])
-                closest__mesh_intersection = intersections[0]
+        elif self.acceleration_structure == "kd-tree" and self.kd_root:
+            return self.kd_root.traverse_tree(ray)
 
-                if not closest_intersection or closest__mesh_intersection[0] < closest_intersection[0]:
-                    closest_intersection = closest__mesh_intersection
-        return closest_intersection
+        else:
+            closest_intersection = None
+            for mesh in self.mesh_list:
+                ray.t_max = float('+inf')
+                ray.t_min = 0.1
+                for i in range(3):
+                    if ray.direction[i] < 1e-8:
+                        if ray.origin[i] < mesh.bounding_box_min[i] or ray.origin[i] > mesh.bounding_box_max[i]:
+                            continue
+                    # else:
+                    #     t1 = (mesh.bounding_box_min[i] - ray.origin[i]) / ray.direction[i]
+                    #     t2 = (mesh.bounding_box_max[i] - ray.origin[i]) / ray.direction[i]
+                    #     if t1 > t2:
+                    #         t1, t2 = t2, t1
+                    #     if t1 > ray.t_min:
+                    #         ray.t_min = t1
+                    #     if t2 < ray.t_max:
+                    #         ray.t_max = t2
+                    #     if ray.t_min > ray.t_max:
+                    #         break
+                intersections = []
+                for face in mesh.faces:
+                    result = face.hit(ray)
+                    t, intersection_point, face = result if result else (False, [0,0,0], None)
+                    if t and ray.t_min <= t <= ray.t_max:
+                        #color = self.phong(face, self.lights[0], intersection_point)
+                        intersections.append([t, intersection_point, face])
+                if intersections:
+                    intersections.sort(key=lambda x: x[0])
+                    closest__mesh_intersection = intersections[0]
+
+                    if not closest_intersection or closest__mesh_intersection[0] < closest_intersection[0]:
+                        closest_intersection = closest__mesh_intersection
+            return closest_intersection
 
