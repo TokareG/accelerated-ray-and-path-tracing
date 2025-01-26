@@ -21,3 +21,4 @@ nav:
       - Scene: core/scene.md
       - Utils: core/utils.md
       - Camera: core/camera.md
+      - BVH: core/BVH.md
