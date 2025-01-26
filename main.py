@@ -7,7 +7,7 @@ from models import *
 # Funkcja do wczytywania parametrów z linii poleceń
 def parse_args():
     parser = argparse.ArgumentParser(description="Ray Tracer")
-    parser.add_argument('--acceleration_structure', type=str, default="none", choices=["bvh", "uniform_grid", "kdtree", "none"],
+    parser.add_argument('--acceleration_structure', type=str, default="none", choices=["bvh", "uniform_grid", "kd-tree", "none"],
                         help="Wybór struktury akceleracji.")
     parser.add_argument('--scene', type=str, required=True, help="Ścieżka do pliku sceny.")
     parser.add_argument('--scene_config', type=str, required=True, help="Ścieżka do pliku konfiguracji sceny.")

@@ -123,7 +123,7 @@ while running:
                 if bvh_selected:
                     start_program("bvh")
                 if kd_selected:
-                    start_program("kdtree")
+                    start_program("kd-tree")
                 if uniformg_selected:
                     start_program("uniform_grid")
                 if none_selected:
