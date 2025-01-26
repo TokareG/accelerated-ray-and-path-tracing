@@ -27,8 +27,8 @@ class Camera:
                  scene: Scene,
                  img_width: int = 300,
                  img_height: int = 200,
-                 camera_origin: List[float] = (0,.75,0) , #,Scene_3:(0,0,8) Scene_2:(0,.75,0)
-                 lookat: List[float] = (0,.75,-1), #Scene_3:(0,.0,-1),Scene_2:(0,.75,-1)
+                 camera_origin: List[float] = (0,0,8) , #,Scene_3:(0,0,8) Scene_2:(0,.75,0)
+                 lookat: List[float] = (0,0,-1), #Scene_3:(0,.0,-1),Scene_2:(0,.75,-1)
                  vup: List[float] =(0,1,0),
                  fov: int = 60):
         self.scene = scene
