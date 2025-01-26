@@ -1,0 +1,2 @@
+Render time: 22.490489seconds
+Average Pixels per second: 2561pps

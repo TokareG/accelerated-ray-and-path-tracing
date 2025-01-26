@@ -6,3 +6,6 @@ pygame
 pygame-gui
 pywavefront
 tqdm
+matplotlib
+tkinter
+python-dotenv
