@@ -3,5 +3,6 @@ mkdocs
 mkdocs-material
 mkdocstrings-python
 pygame
+pygame-gui
 pywavefront
 tqdm
