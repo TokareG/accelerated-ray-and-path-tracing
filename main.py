@@ -26,7 +26,7 @@ pygame.display.set_caption("Ray Tracer")
 clock = pygame.time.Clock()
 running = True
 
-scene = Scene(acceleration_structure="bvh")
+scene = Scene(acceleration_structure="bvh") #["bvh", "grid", "kd-tree", "mesh_bvh"]
 scene.load_from_file('data/scene_3.obj')
 scene.load_config('./scene_config.json')
 
