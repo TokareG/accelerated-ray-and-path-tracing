@@ -8,6 +8,7 @@ from models import *
 from core import *
 from core.Utils import *
 import os
+from core.BVH import build_bvh, hit_bvh
 
 class Scene:
     """
@@ -16,12 +17,13 @@ class Scene:
     and performing ray intersections to determine visibility and color information.
     """
 
-    def __init__(self) -> None:
+    def __init__(self,acceleration_structure="none") -> None:
 
         self.ambient_light = None
         self.mesh_list = None
         self.lights = None
-
+        self.acceleration_structure = acceleration_structure
+        self.bvh_root = None
     def load_from_file(self, filepath):
         """
         Loads a 3D scene from a Wavefront OBJ file and constructs Mesh and Triangle objects.
@@ -29,6 +31,7 @@ class Scene:
         root_path = os.path.join(os.path.dirname(__file__) + "/..")
         scene = Wavefront(os.path.join(root_path, filepath), collect_faces=True)
         meshes = []
+        all_faces = []
         for m in scene.mesh_list:
             mesh = Mesh(m.name)
             min_point = [float('+inf'),float('+inf'),float('+inf')]
@@ -55,6 +58,11 @@ class Scene:
 
         self.mesh_list = meshes
 
+        for mesh in self.mesh_list:
+            all_faces.extend(mesh.faces)
+        self.bvh_root = build_bvh(all_faces, max_faces_in_leaf=4)
+
+
     def load_config(self, path):
         LIGHT_TYPE_MAP = {
             'point': PointLight,
@@ -74,6 +82,9 @@ class Scene:
         Determines if a given ray intersects with any objects in the scene and returns
         information about the closest intersection.
         """
+        if self.acceleration_structure == "bvh" and self.bvh_root:
+           return hit_bvh(ray, self.bvh_root)
+
         closest_intersection = None
         for mesh in self.mesh_list:
             ray.t_max = float('+inf')

@@ -12,3 +12,4 @@ You can find the API documentation for the different modules here:
 - [Scene](core/scene.md)
 - [Utils](core/utils.md)
 - [Camera](core/camera.md)
+- [BVH](core/BVH.md)
