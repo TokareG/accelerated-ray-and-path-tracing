@@ -81,9 +81,6 @@ class Camera:
                     for sample in range(5): #TODO: various number of samples per pixel
                         ray = self.get_ray(i,j)
                         color = self.get_color(ray)
-                        #result = self.scene.hit(ray)
-                        #hit, inter, color = result if result else (False, None, None)
-                        #if hit:
                         pixel_color = add(pixel_color, color)
                     pixel_color = [min(255, max(0, val*255/5)) for val in pixel_color]
                     self.canvas.set_at((i, j), pixel_color)
@@ -119,12 +116,10 @@ class Camera:
                 direction = sub(ray.direction, scale(2 * dot(ray.direction, face.unit_norm), face.unit_norm))
                 reflected_ray = Ray(intersection_point, direction)
                 return matmul(self.get_color(reflected_ray), face.material.diffuse)
-                #return add(self.phong(face, self.scene.lights[0], intersection_point) , scale(0.7, self.get_color(reflected_ray)))
 
         unit_ray_direction = norm(ray.direction)
         a = 0.5 * (unit_ray_direction[1] + 1)
-        return add(scale(1.0-a, [1,1,1]), scale(a, [0.5,0.7,1.0]))
-        #return [0,0,0]
+        return add(scale(1.0 - a, [1, 1, 1]), scale(a, [0.5, 0.7, 1.0]))
 
     def phong(self, face, light, intersection_point) -> List[float]:
         Ns, ka, kd, ks, Ni, d, illum = (face.material.shininess,
@@ -136,7 +131,7 @@ class Camera:
                                         face.material.illumination_model)
         L = norm(sub(light.position, intersection_point))
         R = norm(sub(scale(2 * dot(face.unit_norm, L), face.unit_norm), L))
-        V = norm(sub([0, 0, 0], intersection_point))
+        V = norm(sub(self.camera_origin, intersection_point))
         color = add(scale(self.scene.ambient_light, ka), scale(light.intensity, matmul(light.color, add(scale(
             max(0, dot(L, face.unit_norm)), kd), scale(max(0, dot(R, V)) ** Ns, ks)))))
         return color
