@@ -5,3 +5,4 @@ mkdocstrings-python
 pygame
 pywavefront
 tqdm
+psutil

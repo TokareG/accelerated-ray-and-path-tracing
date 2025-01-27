@@ -27,17 +27,18 @@ class Camera:
                  scene: Scene,
                  img_width: int = 300,
                  img_height: int = 200,
-                 camera_origin: List[float] = (0,5,0) , #,Scene_3:(0,0,8) Scene_2:(0,.75,0)
-                 lookat: List[float] = (0,0,-14), #Scene_3:(0,.0,-1),Scene_2:(0,.75,-1)
+                 camera_origin: List[float] = (0,.75,0) , #,Scene_3:(0,0,8) Scene_2:(0,.75,0), Benchamrk:(0,5,0)
+                 lookat: List[float] = (0,.75,-1), #Scene_3:(0,.0,-1),Scene_2:(0,.75,-1),Benchamrk:(0,0,-14)
                  vup: List[float] =(0,1,0),
-                 fov: int = 60):
+                 fov: int = 60,
+                 trace_algorithm: str = "raytracing"):
         self.scene = scene
         self.img_width = img_width
         self.img_height = img_height
         self.camera_origin = tuple(camera_origin)
         self.fov = fov
         self.canvas = pygame.Surface((img_width, img_height))
-
+        self.trace_algorithm = trace_algorithm
         theta = math.radians(fov)
         half_width = math.tan(theta/2)
         self.viewport_width = 2* half_width
@@ -80,25 +81,26 @@ class Camera:
                     pixel_color = [0,0,0]
                     for sample in range(5): #TODO: various number of samples per pixel
                         ray = self.get_ray(i,j)
-                        color = self.get_color(ray)
+                        if self.trace_algorithm == "raytracing":
+                            color = self.get_color(ray)
+                        elif self.trace_algorithm == "pathtracing":
+                            color=self.get_color_pathtrace(ray)
                         pixel_color = add(pixel_color, color)
                     pixel_color = [min(255, max(0, val*255/5)) for val in pixel_color]
                     self.canvas.set_at((i, j), pixel_color)
                     
                     pbar.update(1)
 
-    def get_color(self, ray, depth=0) -> List[float]:
-        if depth > 10:
+    def get_color(self, ray,depth=0):
+        if depth >5 :
             return [0,0,0]
         hit = self.scene.hit(ray)
         if hit:
             t, intersection_point, face = hit
             if face.material.illumination_model == 2:
-                # Zaczynamy od światła otoczenia (ambient):
                 out_color = scale(self.scene.ambient_light, face.material.ambient)
 
                 for light in self.scene.lights:
-                    # Dla każdego światła sprawdzamy, czy jest zasłonięte
                     light_ray = Ray(add(intersection_point, scale(1e-3, face.unit_norm)),
                                     norm(sub(light.position, intersection_point)))
                     t_to_light = sum(x ** 2 for x in sub(light.position, intersection_point)) ** (1 / 2)
@@ -107,10 +109,7 @@ class Camera:
                     if light_hit:
                         light_t, _, _ = light_hit
                         if light_t < t_to_light:
-                            # Jeśli zasłonięte -> dajemy tylko ambient, więc w tym świetle nic nie dodajemy
                             continue
-                            # ewentualnie można dodać bardzo delikatny "przesiany" kolor, zależnie od materiału
-                    # Jeśli nie zasłonięte:
                     out_color =  self.phong(face, light, intersection_point)
 
                 return out_color
@@ -142,7 +141,7 @@ class Camera:
                                         face.material.specular,
                                         face.material.optical_density,
                                         face.material.transparency,
-                                        face.material.illumination_model)
+                                        face.material.illumination_model,)
         L = norm(sub(light.position, intersection_point))
         R = norm(sub(scale(2 * dot(face.unit_norm, L), face.unit_norm), L))
         V = norm(sub(self.camera_origin, intersection_point))
@@ -156,34 +155,74 @@ class Camera:
         return self.get_color(reflected_ray, depth + 1)
 
     def get_refraction(self, ray, face, intersection_point, depth):
-        n1 = 1.0  # Współczynnik załamania powietrza
-        n2 = face.material.optical_density  # Współczynnik załamania materiału (szkła)
+        n1 = 1.0
+        n2 = face.material.optical_density
 
-        # Ustalanie kierunku przejścia (powietrze → szkło lub szkło → powietrze)
         if dot(norm(ray.direction), face.unit_norm) > 0:
-            # Promień wychodzi ze szkła -> zamień współczynniki
             n1, n2 = n2, n1
-            normal = scale(-1, face.unit_norm)  # Odwrócenie normalnej
+            normal = scale(-1, face.unit_norm)
         else:
             normal = face.unit_norm
 
-        # Obliczanie współczynnika załamania
         ri = n1 / n2
-        cos_theta = -dot(norm(ray.direction), normal)  # Kąt padania
-        sin_theta2 = ri ** 2 * (1 - cos_theta ** 2)  # sin²(θ₂)
+        cos_theta = -dot(norm(ray.direction), normal)
+        sin_theta2 = ri ** 2 * (1 - cos_theta ** 2)
 
         if sin_theta2 > 1.0:
-            # Całkowite wewnętrzne odbicie
             return self.get_reflect(ray, face, intersection_point, depth)
 
-        # Obliczanie kierunku promienia refrakcji
         ray_out_perp = scale(ri, add(norm(ray.direction), scale(cos_theta, normal)))
         ray_out_parallel = scale(-math.sqrt(1.0 - sin_theta2), normal)
         refracted_direction = add(ray_out_perp, ray_out_parallel)
 
-        # Tworzenie nowego promienia refrakcji
         refracted_ray = Ray(add(intersection_point, scale(1e-3, refracted_direction)), refracted_direction)
 
-        # Obliczanie koloru załamanej wiązki (przyciemnienie)
         refracted_color = self.get_color(refracted_ray, depth + 1)
         return refracted_color
+
+    def random_in_hemisphere(self,normal):
+        while True:
+            rx = random.uniform(-1, 1)
+            ry = random.uniform(-1, 1)
+            rz = random.uniform(-1, 1)
+            v = [rx, ry, rz]
+            if dot(v, v) <= 1.0:
+                v = norm(v)
+                if dot(v, normal) < 0:
+                    v = scale(-1, v)
+                return v
+
+    def get_color_pathtrace(self, ray, depth=0, max_depth=7):
+        if depth >= max_depth:
+            unit_ray_direction = norm(ray.direction)
+            a = 0.5 * (unit_ray_direction[1] + 1)
+            return add(scale(1.0 - a, [1, 1, 1]), scale(a, [0.5, 0.7, 1.0]))
+
+        hit = self.scene.hit(ray)
+        if not hit:
+            unit_ray_direction = norm(ray.direction)
+            a = 0.5 * (unit_ray_direction[1] + 1)
+            return add(scale(1.0 - a, [1, 1, 1]), scale(a, [0.5, 0.7, 1.0]))
+
+        t, intersection_point, face = hit
+
+
+
+        normal = face.unit_norm
+        if dot(ray.direction, normal) > 0:
+            normal = scale(-1, normal)
+
+        if face.material.illumination_model == 3:
+
+            reflected_dir = sub(ray.direction, scale(2 * dot(ray.direction, normal), normal))
+            reflected_ray = Ray(add(intersection_point, scale(1e-4, normal)), reflected_dir)
+            return matmul(self.get_color_pathtrace(reflected_ray, depth + 1, max_depth),face.material.diffuse)
+
+        else:
+            emission_color = face.material.emissive
+            kd = face.material.diffuse
+            new_dir = self.random_in_hemisphere(normal)
+            new_origin = add(intersection_point, scale(1e-4, normal))
+            new_ray = Ray(new_origin, new_dir)
+            bounce_color = self.get_color_pathtrace(new_ray, depth + 1, max_depth)
+            return add(matmul(kd, bounce_color),emission_color)
