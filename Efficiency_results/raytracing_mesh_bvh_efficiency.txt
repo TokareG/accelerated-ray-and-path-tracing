@@ -1,0 +1,3 @@
+Render time: 15.254421 seconds
+Average Pixels per second: 3776 pps
+Average RAM usage during rendering: 47.18 MB
