@@ -2,10 +2,11 @@ import argparse
 import pygame
 import timeit
 import os
-import psutil  # Dodane do monitorowania pamięci
+import psutil
 from core.Utils import *
 from core import *
 from models import *
+import json
 
 # Parse arguments
 def parse_args():
@@ -21,8 +22,13 @@ def parse_args():
     parser.add_argument('--fov', type=float, default=60, help="Pole widzenia kamery.")
     return parser.parse_args()
 
+CAMERA_CONFIG_PATH = "camera_config.json"
+
 pygame.init()
 args = parse_args()
+
+with open(CAMERA_CONFIG_PATH, 'r') as f:
+    camera_config = json.load(f)
 
 width, height = args.width, args.height
 
@@ -35,7 +41,7 @@ scene = Scene(acceleration_structure=args.acceleration_structure)
 scene.load_from_file(args.scene)
 scene.load_config(args.scene_config)
 
-camera = Camera(scene, width, height, fov=args.fov, trace_algorithm=args.trace_algorithm)
+camera = Camera(scene, width, height, camera_origin=camera_config['camera_origin'], lookat=camera_config['lookat'], vup=camera_config['vup'], fov=args.fov, trace_algorithm=args.trace_algorithm)
 
 # Monitor RAM usage
 process = psutil.Process(os.getpid())
