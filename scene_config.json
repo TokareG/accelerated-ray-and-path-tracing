@@ -3,7 +3,7 @@
   "lights": {
     "0": {
       "type": "point",
-      "position": [0, 1.8, -1],
+      "position": [-6, 7, -6],
       "intensity": 1
     }
   }

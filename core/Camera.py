@@ -27,8 +27,8 @@ class Camera:
                  scene: Scene,
                  img_width: int = 300,
                  img_height: int = 200,
-                 camera_origin: List[float] = (0,0,8) , #,Scene_3:(0,0,8) Scene_2:(0,.75,0)
-                 lookat: List[float] = (0,0,-1), #Scene_3:(0,.0,-1),Scene_2:(0,.75,-1)
+                 camera_origin: List[float] = (0,5,0) , #,Scene_3:(0,0,8) Scene_2:(0,.75,0)
+                 lookat: List[float] = (0,0,-14), #Scene_3:(0,.0,-1),Scene_2:(0,.75,-1)
                  vup: List[float] =(0,1,0),
                  fov: int = 60):
         self.scene = scene
@@ -87,7 +87,9 @@ class Camera:
                     
                     pbar.update(1)
 
-    def get_color(self, ray):
+    def get_color(self, ray, depth=0) -> List[float]:
+        if depth > 10:
+            return [0,0,0]
         hit = self.scene.hit(ray)
         if hit:
             t, intersection_point, face = hit
@@ -113,9 +115,21 @@ class Camera:
 
                 return out_color
             if face.material.illumination_model == 3:
-                direction = sub(ray.direction, scale(2 * dot(ray.direction, face.unit_norm), face.unit_norm))
-                reflected_ray = Ray(intersection_point, direction)
-                return matmul(self.get_color(reflected_ray), face.material.diffuse)
+                phong_color = self.phong(face, self.scene.lights[0], intersection_point)
+                reflectivity = 0.7
+                return add(scale(1 - reflectivity, phong_color), scale(reflectivity, self.get_reflect(ray, face, intersection_point, depth + 1)))
+                #return matmul(self.get_color(reflected_ray), face.material.diffuse)
+
+            if face.material.illumination_model == 4 or face.material.illumination_model == 5:
+                R_0 = ((1 - face.material.optical_density)/(1 + face.material.optical_density))**2
+                theta = dot(norm(ray.direction), face.unit_norm)
+                reflection_probability = R_0 + (1-R_0)*(1-math.cos(theta))**5
+                does_reflect = random.choices([True, False], weights=[reflection_probability, 1-reflection_probability], k=1)[0]
+                if does_reflect: #Reflect
+                    color = self.get_reflect(ray, face, intersection_point, depth + 1)
+                else:
+                    color = self.get_refraction(ray, face, intersection_point, depth + 1)
+                return color if color else [0,0,0]
 
         unit_ray_direction = norm(ray.direction)
         a = 0.5 * (unit_ray_direction[1] + 1)
@@ -135,3 +149,41 @@ class Camera:
         color = add(scale(self.scene.ambient_light, ka), scale(light.intensity, matmul(light.color, add(scale(
             max(0, dot(L, face.unit_norm)), kd), scale(max(0, dot(R, V)) ** Ns, ks)))))
         return color
+
+    def get_reflect(self, ray, face, intersection_point, depth):
+        direction = sub(ray.direction, scale(2 * dot(ray.direction, face.unit_norm), face.unit_norm))
+        reflected_ray = Ray(intersection_point, direction)
+        return self.get_color(reflected_ray, depth + 1)
+
+    def get_refraction(self, ray, face, intersection_point, depth):
+        n1 = 1.0  # Współczynnik załamania powietrza
+        n2 = face.material.optical_density  # Współczynnik załamania materiału (szkła)
+
+        # Ustalanie kierunku przejścia (powietrze → szkło lub szkło → powietrze)
+        if dot(norm(ray.direction), face.unit_norm) > 0:
+            # Promień wychodzi ze szkła -> zamień współczynniki
+            n1, n2 = n2, n1
+            normal = scale(-1, face.unit_norm)  # Odwrócenie normalnej
+        else:
+            normal = face.unit_norm
+
+        # Obliczanie współczynnika załamania
+        ri = n1 / n2
+        cos_theta = -dot(norm(ray.direction), normal)  # Kąt padania
+        sin_theta2 = ri ** 2 * (1 - cos_theta ** 2)  # sin²(θ₂)
+
+        if sin_theta2 > 1.0:
+            # Całkowite wewnętrzne odbicie
+            return self.get_reflect(ray, face, intersection_point, depth)
+
+        # Obliczanie kierunku promienia refrakcji
+        ray_out_perp = scale(ri, add(norm(ray.direction), scale(cos_theta, normal)))
+        ray_out_parallel = scale(-math.sqrt(1.0 - sin_theta2), normal)
+        refracted_direction = add(ray_out_perp, ray_out_parallel)
+
+        # Tworzenie nowego promienia refrakcji
+        refracted_ray = Ray(add(intersection_point, scale(1e-3, refracted_direction)), refracted_direction)
+
+        # Obliczanie koloru załamanej wiązki (przyciemnienie)
+        refracted_color = self.get_color(refracted_ray, depth + 1)
+        return refracted_color

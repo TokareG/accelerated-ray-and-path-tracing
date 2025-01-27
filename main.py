@@ -7,17 +7,17 @@ import pygame
 
 
 pygame.init()
-width, height = 640, 480
+width, height = 600, 400
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Ray Tracer")
 clock = pygame.time.Clock()
 running = True
 
-scene = Scene(acceleration_structure="BVH")
-scene.load_from_file('data/scene_3.obj')
+scene = Scene(acceleration_structure="bvh")
+scene.load_from_file('data/benchmark.obj')
 scene.load_config('./scene_config.json')
 
-camera = Camera(scene, width, height)
+camera = Camera(scene, width, height, fov=75)
 camera.render()
 while running:
     for event in pygame.event.get():
