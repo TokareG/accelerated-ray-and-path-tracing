@@ -194,9 +194,7 @@ class Camera:
 
     def get_color_pathtrace(self, ray, depth=0, max_depth=7):
         if depth >= max_depth:
-            unit_ray_direction = norm(ray.direction)
-            a = 0.5 * (unit_ray_direction[1] + 1)
-            return add(scale(1.0 - a, [1, 1, 1]), scale(a, [0.5, 0.7, 1.0]))
+            return [0,0,0]
 
         hit = self.scene.hit(ray)
         if not hit:
@@ -220,6 +218,8 @@ class Camera:
 
         else:
             emission_color = face.material.emissive
+            if emission_color != [0.,0.,0.,1.]:
+                return emission_color
             kd = face.material.diffuse
             new_dir = self.random_in_hemisphere(normal)
             new_origin = add(intersection_point, scale(1e-4, normal))
